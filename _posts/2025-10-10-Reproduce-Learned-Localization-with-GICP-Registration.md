@@ -11,9 +11,9 @@ tags: [localization, map, ml, autonomous, DSM, lidar, imagery, geospatial]
 
 
 
-This post documents my reproduction of the ICRA paper "Evaluating Global Geo-alignment for Precision Learned Autonomous Vehicle Localization using Aerial Data" (https://arxiv.org/abs/2503.13896). I focus on implementation details that the paper omits: data preparation, dataset structure, model design, training procedure, and practical challenges I encountered and solved.
+This post documents my reproduction of the ICRA paper "Evaluating Global Geo-alignment for Precision Learned Autonomous Vehicle Localization using Aerial Data" ([arXiv:2503.13896](https://arxiv.org/abs/2503.13896)). I focus on implementation details that the paper omits: data preparation, dataset structure, model design, training procedure, and practical challenges I encountered and solved.
 
-The full data pipeline and training code are open source: https://github.com/rongweiji/ReLL
+The full data pipeline and training code are open source: [rongweiji/ReLL on GitHub](https://github.com/rongweiji/ReLL)
 
 
 ### 1.1 Outcome
@@ -29,7 +29,7 @@ Key outcomes
 
 Brief summary of the paper
 
-- GICP (Generalized Iterative Closest Point) is used to register LiDAR point clouds to DSM points to improve geo-alignment between modalities (paper: https://www.roboticsproceedings.org/rss05/p21.pdf).
+- GICP (Generalized Iterative Closest Point) is used to register LiDAR point clouds to DSM points to improve geo-alignment between modalities (paper: [GICP RSS05](https://www.roboticsproceedings.org/rss05/p21.pdf)).
 - The learned localization approach trains an encoder to produce embeddings for the vehicle (LiDAR/height) and map (DSM/imagery). A cost volume (cross-correlation over a search window) measures similarity across shifts. The pipeline refines integer-pixel peaks to sub-pixel offsets using a Gaussian fit.
 
 ![Compare GICP before and after](/img/GICP%20align%20comapre.png)
@@ -43,13 +43,13 @@ Learned Localization: Train encoder for V&M, sliding the embeding image to measu
 
 Dataset used
 
-- LiDAR: Argoverse 2 (https://www.argoverse.org/av2.html)
-- DSM: Bexar & Travis Counties Lidar (2021) (https://data.geographic.texas.gov/.../447db89a-58ee-4a1b-a61f-b918af2fb0bb)
-- Imagery: Capital Area Council of Governments Imagery (2022), 0.3047 m resolution (https://data.geographic.texas.gov/.../a15f67db-9535-464e-9058-f447325b6251)
+- LiDAR: [Argoverse 2](https://www.argoverse.org/av2.html)
+- DSM: [Bexar & Travis Counties Lidar (2021)](https://data.geographic.texas.gov/collection/?c=447db89a-58ee-4a1b-a61f-b918af2fb0bb)
+- Imagery: [Capital Area Council of Governments Imagery (2022)](https://data.geographic.texas.gov/collection/?c=a15f67db-9535-464e-9058-f447325b6251), 0.3047 m resolution
 - Coordinates: UTM
 - Training samples: 1,108
 
-See the repository for dataset layout and preprocessing details: https://github.com/rongweiji/ReLL/blob/main/data_intro.md
+See the repository for dataset layout and preprocessing details: [data_intro.md](https://github.com/rongweiji/ReLL/blob/main/data_intro.md)
 
 
 ## 2 Gaussian fit method
@@ -143,4 +143,4 @@ Figure 10 — Embedding visualization (example).
 
 Conclusion
 
-This reproduction confirms that careful preprocessing (GICP with filtering, height normalization) and sub-pixel refinement improve learned localization with LiDAR and DSM. Fill rate (LiDAR coverage) is important for reliable localization. The code are available at https://github.com/rongweiji/ReLL if you want to reproduce or extend these experiments.
+This reproduction confirms that careful preprocessing (GICP with filtering, height normalization) and sub-pixel refinement improve learned localization with LiDAR and DSM. Fill rate (LiDAR coverage) is important for reliable localization. The code is available at [rongweiji/ReLL on GitHub](https://github.com/rongweiji/ReLL) if you want to reproduce or extend these experiments.
