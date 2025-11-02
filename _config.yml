@@ -14,8 +14,7 @@ markdown: kramdown
 highlighter: rouge
 plugins:
   - jekyll-feed
-
-google_analytics: G-KDLGKD440J  # Your GA4 measurement ID
+  
 # Exclude from processing
 exclude:
   - Gemfile

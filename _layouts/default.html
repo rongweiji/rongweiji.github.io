@@ -12,7 +12,17 @@
         } catch (e) {}
       })();
     </script>
-  </head>
+
+        <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KDLGKD440J"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-KDLGKD440J');
+    </script>
+      </head>
   <body>
     {% include header.html %}
     <main class="site-main container" role="main">{{ content }}</main>
