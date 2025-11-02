@@ -26,9 +26,14 @@ Learned Localization: Train encoder for V&M, sliding the embeding image to measu
 
 
 ### 1.3 My Data 
-In my reproduction I use the argoverse-2 data https://www.argoverse.org/av2.html. which contains lidar points sample and the translate method from city frame to UTM. Which will align with the data from the open data for DSM and Imagery , in my case I focusing on the city us Austin, TX.
-Bexar & Travis Counties Lidar | 2021 https://data.geographic.texas.gov/collection/?c=447db89a-58ee-4a1b-a61f-b918af2fb0bb
-Capital Area Council of Governments Imagery | 2022  :https://data.geographic.texas.gov/collection/?c=a15f67db-9535-464e-9058-f447325b6251  , resolution 0.3047 
+- Lidar source: argoverse-2 data https://www.argoverse.org/av2.html
+- DSM : Bexar & Travis Counties Lidar | 2021 https://data.geographic.texas.gov/collection/?c=447db89a-58ee-4a1b-a61f-b918af2fb0bb
+- Imagery :  Capital Area Council of Governments Imagery | 2022  :https://data.geographic.texas.gov/collection/?c=a15f67db-9535-464e-9058-f447325b6251  , resolution 0.3047 
+- Coordinate :UTM , 
+- Trainning sample amount: 1108
+
+
+
 
 ## 2 Gaussian fit method 
 
