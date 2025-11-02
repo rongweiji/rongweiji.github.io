@@ -35,8 +35,8 @@ Learned Localization: Train encoder for V&M, sliding the embeding image to measu
 - Imagery :  Capital Area Council of Governments Imagery | 2022  :https://data.geographic.texas.gov/collection/?c=a15f67db-9535-464e-9058-f447325b6251  , resolution 0.3047 
 - Coordinate :UTM , 
 - Trainning sample amount: 1108
-
-
+- Data strucure form my github intro: 
+Before i use this data, i preview the data positoin of the dataset argoverse-2 show their positon for better understanding.  
 
 
 ## 2 Gaussian fit method 
@@ -94,21 +94,22 @@ Fig5. Bigger range of the data contains the lower fill rate, hard for represent 
 
 ## 4 Challengings 
 
-- Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother .
+- 1 Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother .
 
 ![Incorrect align ](/img/incorrect%20GICP%20align.gif)
-
+Fig6. incorrect align between lidar and DSM
 
 After I have find a best method is extract the DSM points as rule(0.5m) is the close with the Lidar poinst cloud based aplied the GNSS align, 
 
 Now we have the correct aligned lidar image 
 ![Correct align](/img/Correct%20Align.gif)
+Fig6. correct align bettwen lidar and DSM
 
+- 2 Pre-procsssing about raster data, when we project the lidar/DSM height data into the 2d raster data . we should remove the altitude in the original coordinate, in my data i am using the UTM ,the over 140m altitude in my dataset which will intunation the height feauture in the data, which cause there not good result when training. 
+using  0.5th percentile  to build a shift for height raster keep the height feature .
 
-- Pre-procsssing about raster data, when we project the lidar/DSM height data into the 2d raster data . we should remove the altitude in the original coordinate, in my data i am using the UTM ,the over 140m altitude in my dataset which will intunation the height feauture in the data, which cause there not good result when training. 
-
-
-
+![Compare projection](/img/compare%20project%20shift.png)
+Fig8. without the shift the data range from 0 to 150+ will tenuation the data of theheight signal when training model. in the image we can not seed the difference btween the height level .
 
 
 
@@ -116,4 +117,13 @@ Now we have the correct aligned lidar image
 
 ## 5 
 theta convergea unsufficciant , in my train result my theta metircs did not gain as better as the original paper after I have several methods.
-embeding visualize represent the hieght weak, compare the embedding image we have with the paper, i find the paper's image show very strong signal of the height from the lidar relation. But in my train result encoder's result shows the geomtry pattern , not so many height signal, it's still screate about the model arch from the paper. 
+
+
+embeding visualize represent the hieght weak, in my case the embedding can indicate somethign heitgh partter in image, but  compare the embedding image we have with the paper, i find the paper's image show very strong signal of the height from the lidar relation. But in my train result encoder's result shows the geomtry pattern , not so many height signal, it's still screate about the model arch from the paper.  And more strong of the height signal and represent will demo the better offset result . In my case i use the 4 projec dim for the output of the encoder for cross-corralation caculation. 
+
+![Embeding image 1](/img/Embedding.png)
+Fig9. Embedding image 
+
+
+![Embedding image 2](/img/Embedding%202.png)
+Fig10. Embedding image 
