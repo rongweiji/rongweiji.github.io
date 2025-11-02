@@ -10,7 +10,7 @@ tags: [localization, map, ml, autonomous, DSM, lidar, imagery, geospatial]
 ## 1 Intro
 This post introduce the reproduction of the ICRA Paper: Evaluating Global Geo-alignment for Precision Learned Autonomous Vehicle Localization using Aerial Data( https://arxiv.org/abs/2503.13896). This post will mainly talk about the detail the paper did not mentions, including the data preparing, data outline,  model design ,train progress. also mentions the chanllengings and solution I have faced. 
 
-All data pipeline method , training code open source  : 
+All data pipeline method , training code open source  : ![GitHub]https://github.com/rongweiji/Rell
 
 
 
@@ -63,13 +63,21 @@ Fig3. sometime the guassian fit method gains better result
 
 ## 3 Fillment rate
 
-In the original paper describe the situaiton is when under the 
+In the original paper describe the situaiton is when throughing the underpass the localization result is not reliable, same sitatuation in my case. I find it related with the lidar points fillment, when passing through the bridge in this example fig4 we see it can not cover whole arear . so there is fewer feature when we trainning it
 
-I have tried two resolution plan plan1 is original imagery resoltuoin , and plan2 is the following the paper's method upsampling to 0.2. we gain better result at the upsampling method. It's high related with the fillment rate I will intro more below. 
 
-| Plan  | Resolution (m) | Raster Size | Range (m) | x_rms (m, UTM) | y_rms (m, UTM) | θ (deg) |
+![Compare example filment rate](/img/fillment_comapre.png)
+Fig4. Passing through bridge, the lidar pints cloud can not cover all area , compare with the better coverrage which gain better offset result and more convergence of the cross-correlation peak seeking.
+
+Based on this situation , it explain why bigger size of the area datase whhich i have tried bigger area 0.3047reosluton with 100mx100m arear which result woarse metrics . 
+Then the 0.2 resolution , smaller area aligneed with the paper gain better model training 
+
+| Scale  | Resolution (m) | Raster Size | Range (m) | x_rms (m, UTM) | y_rms (m, UTM) | θ (deg) |
 |--------|----------------|-------------|------------|----------------|----------------|----------|
-| Plan 1 | 0.3047         | 329 × 329   | 100 × 100  | 0.483          | 0.423          | 0.7083   |
-| Plan 2 | 0.2            | 150 × 150   | 30 × 30    | 0.104          | 0.119          | 0.4480   |
+| Scale 1 | 0.3047         | 329 × 329   | 100 × 100  | 0.483          | 0.423          | 0.7083   |
+| Scale 2 | 0.2            | 150 × 150   | 30 × 30    | 0.105          | 0.106          | 0.3980   |
 
 
+I also compare the relatition between offset distance with the fill rate 
+![Compare 2 dataset of fill rate](/img/fillment%20rate%20statics.png)
+Fig5. Bigger range of the data contains the lower fill rate, hard for represent the geomertry feature in model learning.
