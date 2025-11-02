@@ -36,7 +36,8 @@ Learned Localization: Train encoder for V&M, sliding the embeding image to measu
 - Coordinate :UTM , 
 - Trainning sample amount: 1108
 - Data strucure form my github intro: 
-Before i use this data, i preview the data positoin of the dataset argoverse-2 show their positon for better understanding.  
+Before i use this data, i preview the data positoin of the dataset argoverse-2 show their positon for better understanding.  and build pipeline praepe the data for training, more detail about the data intro : https://github.com/rongweiji/ReLL/blob/main/data_intro.md
+
 
 
 ## 2 Gaussian fit method 
@@ -94,12 +95,12 @@ Fig5. Bigger range of the data contains the lower fill rate, hard for represent 
 
 ## 4 Challengings 
 
-- 1 Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother .
+- 1 Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother . This challenge comes from the modality mismatch , DSM usasluy have higher points. 
 
 ![Incorrect align ](/img/incorrect%20GICP%20align.gif)
 Fig6. incorrect align between lidar and DSM
 
-After I have find a best method is extract the DSM points as rule(0.5m) is the close with the Lidar poinst cloud based aplied the GNSS align, 
+I have triedseveral filter gated method , finally find this rule is best :  Filters DSM points to keep only those within 0.5m (XY plane only) of any LiDAR point   .  used that from the GNSS aligned data we can get better aligned data for training to improve the model as the paper mention.
 
 Now we have the correct aligned lidar image 
 ![Correct align](/img/Correct%20Align.gif)
