@@ -4,4 +4,4 @@ title: About
 permalink: /about/
 ---
 
-Hi, I'm Rongwei. Check out what I'm working on at my personal site: [Personal website](https://waynej.me).
+Hi, I'm Rongwei. Check out what I'm working on at my personal site: [Profile](https://waynej.me).
