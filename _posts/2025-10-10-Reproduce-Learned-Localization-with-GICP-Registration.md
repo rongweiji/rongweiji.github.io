@@ -95,3 +95,25 @@ Fig5. Bigger range of the data contains the lower fill rate, hard for represent 
 ## 4 Challengings 
 
 - Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother .
+
+![Incorrect align ](/img/incorrect%20GICP%20align.gif)
+
+
+After I have find a best method is extract the DSM points as rule(0.5m) is the close with the Lidar poinst cloud based aplied the GNSS align, 
+
+Now we have the correct aligned lidar image 
+![Correct align](/img/Correct%20Align.gif)
+
+
+- Pre-procsssing about raster data, when we project the lidar/DSM height data into the 2d raster data . we should remove the altitude in the original coordinate, in my data i am using the UTM ,the over 140m altitude in my dataset which will intunation the height feauture in the data, which cause there not good result when training. 
+
+
+
+
+
+
+
+
+## 5 
+theta convergea unsufficciant , in my train result my theta metircs did not gain as better as the original paper after I have several methods.
+embeding visualize represent the hieght weak, compare the embedding image we have with the paper, i find the paper's image show very strong signal of the height from the lidar relation. But in my train result encoder's result shows the geomtry pattern , not so many height signal, it's still screate about the model arch from the paper. 
