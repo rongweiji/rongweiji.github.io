@@ -33,7 +33,7 @@ Brief summary of the paper
 - The learned localization approach trains an encoder to produce embeddings for the vehicle (LiDAR/height) and map (DSM/imagery). A cost volume (cross-correlation over a search window) measures similarity across shifts. The pipeline refines integer-pixel peaks to sub-pixel offsets using a Gaussian fit.
 
 ![Compare GICP before and after](/img/GICP%20align%20comapre.png)
-Figure 0 — Applying GICP to align LiDAR and DSM improves projection into image coordinates and helps the learned localization model.
+*Figure 0 — Applying GICP to align LiDAR and DSM improves projection into image coordinates and helps the learned localization model.*
 
 
 Learned Localization: Train encoder for V&M, sliding the embeding image to measure the similartiy within a search window. Define the cost volume to measure the cross-correlation,   and stack the shift to measure the shift capcity or vibrate range . using both the pixel level offset and subpixel offset by Gaussion fit to gain the presice peak.
@@ -77,13 +77,13 @@ Summary results
 In short, Gaussian peak fitting converged better on my data. Because the Gaussian refinement is not differentiable in the same form, I used it only at inference rather than in the training loss.
 
 ![Position Refinement Comparison](/img/Position%20Refinment%20Comparison.png)
-Figure 1 — Comparison of three peak-refinement methods on the mixed dataset.
+*Figure 1 — Comparison of three peak-refinement methods on the mixed dataset.*
 
 ![Compare Peak Finding Method](/img/Comapre%20peak%20finding%20method.png)
-Figure 2 — Many cases show Gaussian fitting produces results comparable to softmax centroids.
+*Figure 2 — Many cases show Gaussian fitting produces results comparable to softmax centroids.*
 
 ![Compare Peak Finding Method 2](/img/Comparepeakfindingmethod2.png)
-Figure 3 — Some cases where Gaussian fitting yields noticeably better results.
+*Figure 3 — Some cases where Gaussian fitting yields noticeably better results.*
 
 
 ## 3 Fillment rate
@@ -93,7 +93,7 @@ LiDAR point coverage ("fill rate")
 The paper notes that localization degrades in scenes such as passing under an underpass; this matches my observations. I found localization quality correlates with LiDAR point coverage of the raster area. In scenes with poor coverage (for my example on the bridge), fewer geometric features exist, and cross-correlation peaks are less reliable.
 
 ![Compare example fillment rate](/img/fillment_comapre.png)
-Figure 4 — Example: on bridge scene where the LiDAR point cloud does not fully cover the raster tile. Coverage correlates with poorer offsets and weaker cross-correlation peaks.
+*Figure 4 — Example: on bridge scene where the LiDAR point cloud does not fully cover the raster tile. Coverage correlates with poorer offsets and weaker cross-correlation peaks.*
 
 This observation explains the difference between larger-area rasters (100 × 100 m at 0.3047 m resolution) and smaller-area rasters (30 × 30 m at 0.2 m resolution). The larger raster with the coarser resolution had worse metrics; the smaller, higher-resolution tiles aligned better with the paper's reported performance.
 
@@ -103,7 +103,7 @@ This observation explains the difference between larger-area rasters (100 × 100
 | Scale 2 | 0.2 | 150 × 150 | 30 × 30 | 0.105 | 0.106 | 0.3980 |
 
 ![Fillment rate statistics](/img/fillment%20rate%20statics.png)
-Figure 5 — Lower fill rates at bigger ranges make it harder for the model to represent geometry robustly.
+*Figure 5 — Lower fill rates at bigger ranges make it harder for the model to represent geometry robustly.*
 
 
 ## 4 Challenges
@@ -115,17 +115,17 @@ Major challenges and solutions
 When registering LiDAR to DSM, modality differences can cause local misalignments (DSM may have denser or different coverage). Filtering improved results: I keep only DSM points whose XY distance to any LiDAR point is within 0.5 m. This reduces spurious matches and yields better training alignment from GNSS-aligned data.
 
 ![Incorrect align](/img/incorrect%20GICP%20align.gif)
-Figure 6 — Example of incorrect LiDAR–DSM alignment before filtering.
+*Figure 6 — Example of incorrect LiDAR–DSM alignment before filtering.*
 
 ![Correct align](/img/Correct%20Align.gif)
-Figure 7 — Correct alignment after filtering and GICP.
+*Figure 7 — Correct alignment after filtering and GICP.*
 
 2) Height normalization when rasterizing
 
 When projecting LiDAR/DSM heights into 2D rasters, absolute altitude variation (e.g., UTM heights around 140+ m) can drown out local height features. I subtract a robust baseline (the 0.5th percentile of heights in the tile) from the raster to preserve local height contrast.
 
 ![Compare projection](/img/compare%20project%20shift.png)
-Figure 8 — Without baseline shift, the height range (0–150+) attenuates local height signals; shifting restores useful contrast.
+*Figure 8 — Without baseline shift, the height range (0–150+) attenuates local height signals; shifting restores useful contrast.*
 
 
 Results, limitations, and next steps
@@ -134,10 +134,10 @@ Results, limitations, and next steps
 - Embedding visualizations show geometric patterns, but they reveal weaker height signals than the paper's examples. That suggests the encoder architecture or preprocessing could be adjusted to emphasize height features more strongly. In my current runs I use a 4-projection dimensional output from the encoder for cross-correlation. More height signal in the embedding image indicates better performance based on limited observations.
 
 ![Embedding image 1](/img/Embedding.png)
-Figure 9 — Embedding visualization (example).
+*Figure 9 — Embedding visualization (example).* 
 
 ![Embedding image 2](/img/Embedding%202.png)
-Figure 10 — Embedding visualization (example).
+*Figure 10 — Embedding visualization (example).* 
 
 
 
