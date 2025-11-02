@@ -8,123 +8,139 @@ tags: [localization, map, ml, autonomous, DSM, lidar, imagery, geospatial]
 
 
 ## 1 Intro
-This post introduce the reproduction of the ICRA Paper: Evaluating Global Geo-alignment for Precision Learned Autonomous Vehicle Localization using Aerial Data( https://arxiv.org/abs/2503.13896). This post will mainly talk about the detail the paper did not mentions, including the data preparing, data outline,  model design ,train progress. also mentions the chanllengings and solution I have faced. 
 
-All data pipeline method , training code open source  : ![GitHub]https://github.com/rongweiji/Rell
 
+
+This post documents my reproduction of the ICRA paper "Evaluating Global Geo-alignment for Precision Learned Autonomous Vehicle Localization using Aerial Data" (https://arxiv.org/abs/2503.13896). I focus on implementation details that the paper omits: data preparation, dataset structure, model design, training procedure, and practical challenges I encountered and solved.
+
+The full data pipeline and training code are open source: https://github.com/rongweiji/ReLL
 
 
 ### 1.1 Outcome
-- Implemation the data pipeline including GICP registration, and model trianing progress, prove the GICP registration gain good result. 
-- Experiment several loss funciotn contrscutrion , softmax, improved gaussian fit method. at the 0.2m resolution dataset gain rms 0.1m level translation acurracy.
-- Explore the edge case mention in the original paper. Propose a factor relate with the lidar point fillment rate reason. 
 
-### 1.2 Core of original paper
-GICP: (https://www.roboticsproceedings.org/rss05/p21.pdf) is brought to be a method for resgistration, and the embeding encoder model training and vali by translation metircs. It approved the GICP included can improve high resulotion localization in the imagery coordinate. 
+Key outcomes
 
-![Comapre GICP before and after ](/img/GICP%20align%20comapre.png)
-Fig0 After applied the GICP wieh the lidar point registe to the DSM points we gain better alignemnt when we apply the projection to imagery which enhence the learned localization model training .
+- Implemented the full data pipeline, including GICP registration and model training, and showed that GICP improves alignment for training.
+- Compared several refinement approaches (softmax, Gaussian peak fitting). On a 0.2 m resolution dataset, the best pipeline reached translation RMS on the order of 0.1 m.
+- Explored edge cases from the paper and identified a correlation between localization quality and LiDAR point "fill rate" (coverage).
+
+
+### 1.2 Core of the paper
+
+Brief summary of the paper
+
+- GICP (Generalized Iterative Closest Point) is used to register LiDAR point clouds to DSM points to improve geo-alignment between modalities (paper: https://www.roboticsproceedings.org/rss05/p21.pdf).
+- The learned localization approach trains an encoder to produce embeddings for the vehicle (LiDAR/height) and map (DSM/imagery). A cost volume (cross-correlation over a search window) measures similarity across shifts. The pipeline refines integer-pixel peaks to sub-pixel offsets using a Gaussian fit.
+
+![Compare GICP before and after](/img/GICP%20align%20comapre.png)
+Figure 0 — Applying GICP to align LiDAR and DSM improves projection into image coordinates and helps the learned localization model.
 
 
 Learned Localization: Train encoder for V&M, sliding the embeding image to measure the similartiy within a search window. Define the cost volume to measure the cross-correlation,   and stack the shift to measure the shift capcity or vibrate range . using both the pixel level offset and subpixel offset by Gaussion fit to gain the presice peak.
 
 
-### 1.3 My Data 
-- Lidar source: argoverse-2 data https://www.argoverse.org/av2.html
-- DSM : Bexar & Travis Counties Lidar | 2021 https://data.geographic.texas.gov/collection/?c=447db89a-58ee-4a1b-a61f-b918af2fb0bb
-- Imagery :  Capital Area Council of Governments Imagery | 2022  :https://data.geographic.texas.gov/collection/?c=a15f67db-9535-464e-9058-f447325b6251  , resolution 0.3047 
-- Coordinate :UTM , 
-- Trainning sample amount: 1108
-- Data strucure form my github intro: 
-Before i use this data, i preview the data positoin of the dataset argoverse-2 show their positon for better understanding.  and build pipeline praepe the data for training, more detail about the data intro : https://github.com/rongweiji/ReLL/blob/main/data_intro.md
+### 1.3 Dataset
+
+Dataset used
+
+- LiDAR: Argoverse 2 (https://www.argoverse.org/av2.html)
+- DSM: Bexar & Travis Counties Lidar (2021) (https://data.geographic.texas.gov/.../447db89a-58ee-4a1b-a61f-b918af2fb0bb)
+- Imagery: Capital Area Council of Governments Imagery (2022), 0.3047 m resolution (https://data.geographic.texas.gov/.../a15f67db-9535-464e-9058-f447325b6251)
+- Coordinates: UTM
+- Training samples: 1,108
+
+See the repository for dataset layout and preprocessing details: https://github.com/rongweiji/ReLL/blob/main/data_intro.md
 
 
+## 2 Gaussian fit method
 
-## 2 Gaussian fit method 
+Gaussian fit for sub-pixel refinement
 
+During training I use a softmax-based loss (differentiable) but apply Gaussian peak fitting only at inference to refine the correlation peak. On mixed datasets, Gaussian fitting consistently produced better refinements than naive softmax centroids.
 
-in my trainning progress i applied the softmax probabilities  method for loss function to Backpropagating the loss update the model . But the guassian fit only for the infer. 
-On the mix dataset, i use the guassian fit to perform the refine position solve gain better result than softmax reuslt.
+Refinement procedure (inference)
 
-- Extract 3×3 patch centered on the discrete peak and clamp tiny values.
-- Take log of pixel values → Gaussian amplitude becomes a quadratic surface.
-- Use neighbor values to estimate first and second derivatives.
-- Solve for stationary point: dx = −(d/dx) / (d2/dx2), dy = −(d/dy) / (d2/dy2).
-- Clamp offsets to a safe range and add to integer center → sub‑pixel (x,y).
-- Optionally sample score via bilinear interpolation at refined (x,y).
+- Extract a 3×3 patch centered on the discrete peak and clamp very small values.
+- Take the log of pixel values so a Gaussian turns into a quadratic surface.
+- Estimate first and second derivatives from neighbors.
+- Solve for the stationary point: dx = −(d/dx) / (d2/dx2), dy = −(d/dy) / (d2/dy2).
+- Clamp offsets to a safe range and add to the integer center to get a sub-pixel (x,y).
+- Optionally sample the score via bilinear interpolation at the refined location.
 
-
+Summary results
 
 | **Method** | **RMS Errors (m)** | **P50 (Median) (m)** | **P99 (99th Percentile) (m)** | **Mean Distance (m)** | **Max Distance (m)** |
 |:------------|:-------------------|:----------------------|:-------------------------------|:----------------------|:--------------------:|
 | **Softmax Refinement** | **X:** 0.2273<br>**Y:** 0.2637<br>**Dist:** 0.3481 | **X:** 0.0711<br>**Y:** 0.1161<br>**Dist:** 0.1753 | **X:** 1.0376<br>**Y:** 1.0816<br>**Dist:** 1.2508 | 0.2498 | 1.6772 |
 | **Gaussian Peak Refinement** | **X:** 0.1907<br>**Y:** 0.2222<br>**Dist:** 0.2928 | **X:** 0.0690<br>**Y:** 0.1154<br>**Dist:** 0.1701 | **X:** 0.9560<br>**Y:** 1.0050<br>**Dist:** 1.2029 | 0.2090 | 1.6772 |
 
-Based on my data the guassian fit method gain better converge than softmax, but because of undiffenretiable guassian fit we can not applied it into the model training .
+In short, Gaussian peak fitting converged better on my data. Because the Gaussian refinement is not differentiable in the same form, I used it only at inference rather than in the training loss.
 
 ![Position Refinement Comparison](/img/Position%20Refinment%20Comparison.png)
-Fig1. comapre 3 refined cross-corralation peak finding result at the mix dataset 
+Figure 1 — Comparison of three peak-refinement methods on the mixed dataset.
 
 ![Compare Peak Finding Method](/img/Comapre%20peak%20finding%20method.png)
-Fig2. compare 3 refined peak finding method, most time gaussain fit method can gain equaivlant result as softmax 
+Figure 2 — Many cases show Gaussian fitting produces results comparable to softmax centroids.
 
 ![Compare Peak Finding Method 2](/img/Comparepeakfindingmethod2.png)
-Fig3. sometime the guassian fit method gains better result
+Figure 3 — Some cases where Gaussian fitting yields noticeably better results.
+
 
 ## 3 Fillment rate
 
-In the original paper describe the situaiton is when throughing the underpass the localization result is not reliable, same sitatuation in my case. I find it related with the lidar points fillment, when passing through the bridge in this example fig4 we see it can not cover whole arear . so there is fewer feature when we trainning it
+LiDAR point coverage ("fill rate")
+
+The paper notes that localization degrades in scenes such as passing under an underpass; this matches my observations. I found localization quality correlates with LiDAR point coverage of the raster area. In scenes with poor coverage (for my example on the bridge), fewer geometric features exist, and cross-correlation peaks are less reliable.
+
+![Compare example fillment rate](/img/fillment_comapre.png)
+Figure 4 — Example: on bridge scene where the LiDAR point cloud does not fully cover the raster tile. Coverage correlates with poorer offsets and weaker cross-correlation peaks.
+
+This observation explains the difference between larger-area rasters (100 × 100 m at 0.3047 m resolution) and smaller-area rasters (30 × 30 m at 0.2 m resolution). The larger raster with the coarser resolution had worse metrics; the smaller, higher-resolution tiles aligned better with the paper's reported performance.
+
+| Scale | Resolution (m) | Raster Size | Range (m) | x_rms (m, UTM) | y_rms (m, UTM) | θ (deg) |
+|---|---:|---:|---:|---:|---:|---:|
+| Scale 1 | 0.3047 | 329 × 329 | 100 × 100 | 0.483 | 0.423 | 0.7083 |
+| Scale 2 | 0.2 | 150 × 150 | 30 × 30 | 0.105 | 0.106 | 0.3980 |
+
+![Fillment rate statistics](/img/fillment%20rate%20statics.png)
+Figure 5 — Lower fill rates at bigger ranges make it harder for the model to represent geometry robustly.
 
 
-![Compare example filment rate](/img/fillment_comapre.png)
-Fig4. Passing through bridge, the lidar pints cloud can not cover all area , compare with the better coverrage which gain better offset result and more convergence of the cross-correlation peak seeking.
+## 4 Challenges
 
-Based on this situation , it explain why bigger size of the area datase whhich i have tried bigger area 0.3047reosluton with 100mx100m arear which result woarse metrics . 
-Then the 0.2 resolution , smaller area aligneed with the paper gain better model training 
+Major challenges and solutions
 
-| Scale  | Resolution (m) | Raster Size | Range (m) | x_rms (m, UTM) | y_rms (m, UTM) | θ (deg) |
-|--------|----------------|-------------|------------|----------------|----------------|----------|
-| Scale 1 | 0.3047         | 329 × 329   | 100 × 100  | 0.483          | 0.423          | 0.7083   |
-| Scale 2 | 0.2            | 150 × 150   | 30 × 30    | 0.105          | 0.106          | 0.3980   |
+1) GICP registration and modality mismatch
 
+When registering LiDAR to DSM, modality differences can cause local misalignments (DSM may have denser or different coverage). Filtering improved results: I keep only DSM points whose XY distance to any LiDAR point is within 0.5 m. This reduces spurious matches and yields better training alignment from GNSS-aligned data.
 
-I also compare the relatition between offset distance with the fill rate 
-![Compare 2 dataset of fill rate](/img/fillment%20rate%20statics.png)
-Fig5. Bigger range of the data contains the lower fill rate, hard for represent the geomertry feature in model learning.
+![Incorrect align](/img/incorrect%20GICP%20align.gif)
+Figure 6 — Example of incorrect LiDAR–DSM alignment before filtering.
 
-
-## 4 Challengings 
-
-- 1 Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother . This challenge comes from the modality mismatch , DSM usasluy have higher points. 
-
-![Incorrect align ](/img/incorrect%20GICP%20align.gif)
-Fig6. incorrect align between lidar and DSM
-
-I have triedseveral filter gated method , finally find this rule is best :  Filters DSM points to keep only those within 0.5m (XY plane only) of any LiDAR point   .  used that from the GNSS aligned data we can get better aligned data for training to improve the model as the paper mention.
-
-Now we have the correct aligned lidar image 
 ![Correct align](/img/Correct%20Align.gif)
-Fig6. correct align bettwen lidar and DSM
+Figure 7 — Correct alignment after filtering and GICP.
 
-- 2 Pre-procsssing about raster data, when we project the lidar/DSM height data into the 2d raster data . we should remove the altitude in the original coordinate, in my data i am using the UTM ,the over 140m altitude in my dataset which will intunation the height feauture in the data, which cause there not good result when training. 
-using  0.5th percentile  to build a shift for height raster keep the height feature .
+2) Height normalization when rasterizing
+
+When projecting LiDAR/DSM heights into 2D rasters, absolute altitude variation (e.g., UTM heights around 140+ m) can drown out local height features. I subtract a robust baseline (the 0.5th percentile of heights in the tile) from the raster to preserve local height contrast.
 
 ![Compare projection](/img/compare%20project%20shift.png)
-Fig8. without the shift the data range from 0 to 150+ will tenuation the data of theheight signal when training model. in the image we can not seed the difference btween the height level .
+Figure 8 — Without baseline shift, the height range (0–150+) attenuates local height signals; shifting restores useful contrast.
 
 
+Results, limitations, and next steps
 
+- Rotation (theta) convergence was weaker in my experiments than in the original paper. I tried multiple remedies but did not fully close the gap.
+- Embedding visualizations show geometric patterns, but they reveal weaker height signals than the paper's examples. That suggests the encoder architecture or preprocessing could be adjusted to emphasize height features more strongly. In my current runs I use a 4-projection dimensional output from the encoder for cross-correlation. More height signal in the embedding image indicates better performance based on limited observations.
 
-
-## 5 
-theta convergea unsufficciant , in my train result my theta metircs did not gain as better as the original paper after I have several methods.
-
-
-embeding visualize represent the hieght weak, in my case the embedding can indicate somethign heitgh partter in image, but  compare the embedding image we have with the paper, i find the paper's image show very strong signal of the height from the lidar relation. But in my train result encoder's result shows the geomtry pattern , not so many height signal, it's still screate about the model arch from the paper.  And more strong of the height signal and represent will demo the better offset result . In my case i use the 4 projec dim for the output of the encoder for cross-corralation caculation. 
-
-![Embeding image 1](/img/Embedding.png)
-Fig9. Embedding image 
-
+![Embedding image 1](/img/Embedding.png)
+Figure 9 — Embedding visualization (example).
 
 ![Embedding image 2](/img/Embedding%202.png)
-Fig10. Embedding image 
+Figure 10 — Embedding visualization (example).
+
+
+
+Conclusion
+
+This reproduction confirms that careful preprocessing (GICP with filtering, height normalization) and sub-pixel refinement improve learned localization with LiDAR and DSM. Fill rate (LiDAR coverage) is important for reliable localization. The code are available at https://github.com/rongweiji/ReLL if you want to reproduce or extend these experiments.
