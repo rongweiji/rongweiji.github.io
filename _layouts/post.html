@@ -91,4 +91,67 @@ layout: default
 })();
 </script>
 
+<script>
+// Image Lightbox
+(function() {
+  var postContent = document.querySelector('.post-content');
+  if (!postContent) return;
+
+  // Create lightbox overlay element
+  var lightbox = document.createElement('div');
+  lightbox.className = 'lightbox-overlay';
+
+  var closeBtn = document.createElement('span');
+  closeBtn.className = 'lightbox-close';
+  closeBtn.innerHTML = '&times;';
+
+  var img = document.createElement('img');
+  img.className = 'lightbox-image';
+
+  lightbox.appendChild(closeBtn);
+  lightbox.appendChild(img);
+  document.body.appendChild(lightbox);
+
+  // Function to open lightbox
+  function openLightbox(imageSrc) {
+    img.src = imageSrc;
+    document.body.classList.add('lightbox-open');
+    lightbox.classList.add('active');
+  }
+
+  // Function to close lightbox
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.classList.remove('lightbox-open');
+    setTimeout(function() {
+      img.src = '';
+    }, 300);
+  }
+
+  // Add click event to all images in post content
+  var images = postContent.querySelectorAll('img');
+  images.forEach(function(image) {
+    image.addEventListener('click', function(e) {
+      e.preventDefault();
+      openLightbox(this.src);
+    });
+  });
+
+  // Close lightbox when clicking on overlay or close button
+  lightbox.addEventListener('click', closeLightbox);
+
+  // Prevent closing when clicking on the image itself
+  img.addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+
+  // Close lightbox with ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+      closeLightbox();
+    }
+  });
+})();
+</script>
+
 
