@@ -128,7 +128,7 @@ When projecting LiDAR/DSM heights into 2D rasters, absolute altitude variation (
 *Figure 8 — Without baseline shift, the height range (0–150+) attenuates local height signals; shifting restores useful contrast.*
 
 
-Results, limitations, and next steps
+## 5 Results, limitations
 
 - Rotation (theta) convergence was weaker in my experiments than in the original paper. I tried multiple remedies but did not fully close the gap.
 - Embedding visualizations show geometric patterns, but they reveal weaker height signals than the paper's examples. That suggests the encoder architecture or preprocessing could be adjusted to emphasize height features more strongly. In my current runs I use a 4-projection dimensional output from the encoder for cross-correlation. More height signal in the embedding image indicates better performance based on limited observations.
@@ -141,6 +141,6 @@ Results, limitations, and next steps
 
 
 
-Conclusion
+## 6 Conclusion
 
 This reproduction confirms that careful preprocessing (GICP with filtering, height normalization) and sub-pixel refinement improve learned localization with LiDAR and DSM. Fill rate (LiDAR coverage) is important for reliable localization. The code is available at [rongweiji/ReLL on GitHub](https://github.com/rongweiji/ReLL) if you want to reproduce or extend these experiments.
