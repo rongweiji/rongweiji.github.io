@@ -22,6 +22,10 @@ All data pipeline method , training code open source  : ![GitHub]https://github.
 ### 1.2 Core of original paper
 GICP: (https://www.roboticsproceedings.org/rss05/p21.pdf) is brought to be a method for resgistration, and the embeding encoder model training and vali by translation metircs. It approved the GICP included can improve high resulotion localization in the imagery coordinate. 
 
+![Comapre GICP before and after ](/img/GICP%20align%20comapre.png)
+Fig0 After applied the GICP wieh the lidar point registe to the DSM points we gain better alignemnt when we apply the projection to imagery which enhence the learned localization model training .
+
+
 Learned Localization: Train encoder for V&M, sliding the embeding image to measure the similartiy within a search window. Define the cost volume to measure the cross-correlation,   and stack the shift to measure the shift capcity or vibrate range . using both the pixel level offset and subpixel offset by Gaussion fit to gain the presice peak.
 
 
@@ -86,3 +90,8 @@ Then the 0.2 resolution , smaller area aligneed with the paper gain better model
 I also compare the relatition between offset distance with the fill rate 
 ![Compare 2 dataset of fill rate](/img/fillment%20rate%20statics.png)
 Fig5. Bigger range of the data contains the lower fill rate, hard for represent the geomertry feature in model learning.
+
+
+## 4 Challengings 
+
+- Pre-procssing about the GICP, GICP perform good for registration different data which can be align with eachother .
